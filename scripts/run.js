@@ -5,26 +5,39 @@ const main = async () => {
   const myEthSpaceContractFactory = await hre.ethers.getContractFactory("MyEthSpace");
   
   //What's happening here is Hardhat will create a local Ethereum network just for this contract. 
-  const myEthSpaceContract = await myEthSpaceContractFactory.deploy();
+  const myEthSpaceContract = await myEthSpaceContractFactory.deploy({
+    value: hre.ethers.utils.parseEther("0.1"),
+  });
   await myEthSpaceContract.deployed();
   
-  console.log("Contract deployed to:", myEthSpaceContract.address);
-  console.log("Contract deployed by ", owner.address);
+  /*
+   * Get Contract balance
+   */
+  let contractBalance = await hre.ethers.provider.getBalance(
+    myEthSpaceContract.address
+  );
+  console.log(
+    "Contract balance:",
+    hre.ethers.utils.formatEther(contractBalance)
+  );
 
-  let waveTxn = await myEthSpaceContract.wave();
-  await waveTxn.wait();
+  let waveTxn = await myEthSpaceContract.wave("A message!");
+  await waveTxn.wait(); // Wait for the transaction to be mined
   
-  waveTxn = await myEthSpaceContract.like();
-  await waveTxn.wait();
+  waveTxn = await myEthSpaceContract.connect(randomPerson).like("Another message!");
+  await waveTxn.wait(); // Wait for the transaction to be mined
+  
 
-  waveTxn = await myEthSpaceContract.thumbsup();
-  await waveTxn.wait();
-
-  waveTxn = await myEthSpaceContract.connect(randomPerson).wave();
-  await waveTxn.wait();
-
-  let socials = await myEthSpaceContract.getTotalSocialActions();
-  console.log("socials:", Number(socials.totalWaves), "👋", Number(socials.totalLikes), "👍", Number(socials.totalLikes), "💘");
+  /*
+   * Get Contract balance to see what happened!
+   */
+  contractBalance = await hre.ethers.provider.getBalance(myEthSpaceContract.address);
+   console.log(
+     "Contract balance:",
+    hre.ethers.utils.formatEther(contractBalance)
+  );
+  let allMessages = await myEthSpaceContract.getAllMessages();
+  console.log(allMessages);
 }
 
 const runMain = async () => {
